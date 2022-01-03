@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
-  reactStrictMode: true,
-}
+  // react-aria SSR doesn't support strict mode
+  // https://github.com/adobe/react-spectrum/issues/2231
+  reactStrictMode: false,
+};
