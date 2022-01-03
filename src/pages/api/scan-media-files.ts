@@ -107,7 +107,7 @@ export default async function handler(
         // English
         for (const code of engCodes) {
           for (const ext of supportedSubtitleExtensions) {
-            const subFilename = file.replace(extension, `.${code}.${ext}`);
+            const subFilename = file.replace(extension, `.${code}${ext}`);
             const subPath = path.join(dir, subFilename);
 
             if (fs.existsSync(subPath)) {
@@ -125,7 +125,7 @@ export default async function handler(
         // Japanese
         for (const code of japCodes) {
           for (const ext of supportedSubtitleExtensions) {
-            const subFilename = file.replace(extension, `.${code}.${ext}`);
+            const subFilename = file.replace(extension, `.${code}${ext}`);
             const subPath = path.join(dir, subFilename);
 
             if (fs.existsSync(subPath)) {
