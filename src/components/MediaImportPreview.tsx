@@ -79,6 +79,7 @@ export const MediaImportPreview: React.FC<Props> = ({
   const [synced, setSynced] = useState<SyncedSubs>({});
   const tableRef = useRef<HTMLDivElement>(null);
   const [previewImageSrc, setPreviewImageSrc] = useState("");
+  const previewAudioRef = useRef<HTMLAudioElement>(null);
 
   const fetchPreviews = async () => {
     try {
@@ -139,6 +140,35 @@ export const MediaImportPreview: React.FC<Props> = ({
     }
   };
 
+  const onAudioButtonClick = async (
+    root: string,
+    filepath: string,
+    start: number,
+    end: number
+  ) => {
+    try {
+      const res = await fetch("/api/generate-preview-audio", {
+        method: "POST",
+        headers: {
+          Accept: "blob",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          root,
+          filename: filepath,
+          start,
+          end,
+        }),
+      });
+
+      const blob = await res.blob();
+      previewAudioRef.current!.src = URL.createObjectURL(blob);
+      previewAudioRef.current!.play();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     if (!tableRef.current) {
       return;
@@ -185,6 +215,7 @@ export const MediaImportPreview: React.FC<Props> = ({
         <TableRow css={{ position: "sticky", top: 0, backgroundColor: "#fff" }}>
           <RowButtons>
             <img src={previewImageSrc} />
+            <audio ref={previewAudioRef}></audio>
           </RowButtons>
           <RowJap>Japanese</RowJap>
           <RowJap>English</RowJap>
@@ -202,7 +233,18 @@ export const MediaImportPreview: React.FC<Props> = ({
               >
                 Show image
               </Button>
-              <Button>Play audio</Button>
+              <Button
+                onPress={() =>
+                  onAudioButtonClick(
+                    root,
+                    entry.filename,
+                    syncedEntry.start,
+                    syncedEntry.end
+                  )
+                }
+              >
+                Play audio
+              </Button>
             </RowButtons>
             <RowJap>{syncedEntry.jap}</RowJap>
             <RowJap>{syncedEntry.eng}</RowJap>

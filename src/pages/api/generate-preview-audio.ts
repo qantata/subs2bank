@@ -5,14 +5,21 @@ import { spawn } from "child_process";
 import { NextApiRequest, NextApiResponse } from "next";
 import path from "path";
 
-const ffmpeg = async (filepath: string, timestamp: number, args: string[]) => {
+const ffmpeg = async (
+  filepath: string,
+  start: number,
+  end: number,
+  args: string[]
+) => {
   return new Promise<void>((resolve, reject) => {
     const processArgs = [
       "-hide_banner",
       "-loglevel",
       "fatal",
       "-ss",
-      `${timestamp}`,
+      `${start}`,
+      "-t",
+      `${end - start}`,
       "-i",
       filepath,
       ...args,
@@ -52,7 +59,8 @@ export default async function handler(
   if (
     typeof req.body.root !== "string" ||
     typeof req.body.filename !== "string" ||
-    typeof req.body.timestamp !== "number"
+    typeof req.body.start !== "number" ||
+    typeof req.body.end !== "number"
   ) {
     res.status(400).json({
       error: "invalid body",
@@ -61,34 +69,37 @@ export default async function handler(
     return;
   }
 
-  const jpgPath = path.join(
+  const mp3Path = path.join(
     os.homedir(),
     ".local",
     "share",
     "subs2bank",
-    "temp.jpg"
+    "temp.mp3"
   );
 
   fse.ensureDirSync(path.join(os.homedir(), ".local", "share", "subs2bank"));
-  if (fs.existsSync(jpgPath)) {
-    fse.removeSync(jpgPath);
+  if (fs.existsSync(mp3Path)) {
+    fse.removeSync(mp3Path);
   }
 
   try {
     await ffmpeg(
       path.join(req.body.root, req.body.filename),
-      Math.floor(req.body.timestamp / 1000),
-      ["-vframes", "1", "-q:v", "5", "-vf", `scale=200:-2`, jpgPath]
+      req.body.start / 1000,
+      req.body.end / 1000,
+      ["-vn", "-sn", "-b:a", "128k", mp3Path]
     );
 
-    var data = fs.readFileSync(jpgPath);
+    console.log("done");
 
-    res.setHeader("Content-Type", "image/jpg");
+    var data = fs.readFileSync(mp3Path);
+
+    res.setHeader("Content-Type", "audio/mp3");
     res.send(data);
   } catch (err) {
     console.error(err);
     res.status(500).send({
-      error: "couldn't generate image",
+      error: "couldn't generate audio",
     });
   }
 }
