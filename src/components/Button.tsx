@@ -23,6 +23,7 @@ export const StyledButton = styled("button", {
 });
 
 type Props = {
+  onPress?: () => void;
   children?: React.ReactNode;
 };
 

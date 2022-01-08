@@ -41,6 +41,11 @@ const RowButtons = styled("div", {
       marginBottom: "8px",
     },
   },
+
+  "> img": {
+    height: "100%",
+    aspectRatio: "16 / 9",
+  },
 });
 
 const RowJap = styled("div", {
@@ -73,6 +78,7 @@ export const MediaImportPreview: React.FC<Props> = ({
   const [error, setError] = useState("");
   const [synced, setSynced] = useState<SyncedSubs>({});
   const tableRef = useRef<HTMLDivElement>(null);
+  const [previewImageSrc, setPreviewImageSrc] = useState("");
 
   const fetchPreviews = async () => {
     try {
@@ -97,6 +103,37 @@ export const MediaImportPreview: React.FC<Props> = ({
 
       setSynced(json.entries);
       setIsLoading(false);
+      setTimeout(() => {
+        tableRef.current!.scrollTo({
+          top: 0,
+        });
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const onImageButtonClick = async (
+    root: string,
+    filepath: string,
+    timestamp: number
+  ) => {
+    try {
+      const res = await fetch("/api/generate-preview-image", {
+        method: "POST",
+        headers: {
+          Accept: "blob",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          root,
+          filename: filepath,
+          timestamp,
+        }),
+      });
+
+      const blob = await res.blob();
+      setPreviewImageSrc(URL.createObjectURL(blob));
     } catch (err) {
       console.error(err);
     }
@@ -112,7 +149,7 @@ export const MediaImportPreview: React.FC<Props> = ({
         top: 0,
       });
     });
-  }, [entry, tableRef.current]);
+  }, [entry]);
 
   useEffect(() => {
     fetchPreviews();
@@ -145,8 +182,10 @@ export const MediaImportPreview: React.FC<Props> = ({
       />
 
       <Table ref={tableRef}>
-        <TableRow>
-          <RowButtons></RowButtons>
+        <TableRow css={{ position: "sticky", top: 0, backgroundColor: "#fff" }}>
+          <RowButtons>
+            <img src={previewImageSrc} />
+          </RowButtons>
           <RowJap>Japanese</RowJap>
           <RowJap>English</RowJap>
         </TableRow>
@@ -156,7 +195,13 @@ export const MediaImportPreview: React.FC<Props> = ({
             key={`${syncedEntry.jap}${syncedEntry.eng}${syncedEntry.start}${syncedEntry.end}`}
           >
             <RowButtons>
-              <Button>Show image</Button>
+              <Button
+                onPress={() =>
+                  onImageButtonClick(root, entry.filename, syncedEntry.start)
+                }
+              >
+                Show image
+              </Button>
               <Button>Play audio</Button>
             </RowButtons>
             <RowJap>{syncedEntry.jap}</RowJap>
