@@ -1,4 +1,5 @@
 import { styled } from "@root/stitches.config";
+import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import { SyncedSubs } from "../pages/api/generate-previews";
 import { Entry } from "../pages/api/scan-media-files";
@@ -80,6 +81,7 @@ export const MediaImportPreview: React.FC<Props> = ({
   const tableRef = useRef<HTMLDivElement>(null);
   const [previewImageSrc, setPreviewImageSrc] = useState("");
   const previewAudioRef = useRef<HTMLAudioElement>(null);
+  const router = useRouter();
 
   const fetchPreviews = async () => {
     try {
@@ -169,6 +171,39 @@ export const MediaImportPreview: React.FC<Props> = ({
     }
   };
 
+  const onStartImportClick = async () => {
+    try {
+      const res = await fetch("/api/start-processing", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          root,
+          entries,
+          importName: mediaName,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (json.error) {
+        setError(json.error);
+        return;
+      }
+
+      if (!json.importId) {
+        setError("No import id");
+        return;
+      }
+
+      router.push(`/imports/${json.importId}`);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     if (!tableRef.current) {
       return;
@@ -251,6 +286,10 @@ export const MediaImportPreview: React.FC<Props> = ({
           </TableRow>
         ))}
       </Table>
+
+      <div style={{ marginTop: 32 }}>
+        <Button onPress={onStartImportClick}>Start import</Button>
+      </div>
     </>
   );
 };

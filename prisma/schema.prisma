@@ -7,6 +7,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Test {
-  id Int @id @default(autoincrement())
+model File {
+  id            Int          @id @default(autoincrement())
+  path          String
+  mediaImport   MediaImport? @relation(fields: [mediaImportId], references: [id])
+  mediaImportId Int?
+}
+
+model Entry {
+  id  Int    @id @default(autoincrement())
+  jap String
+  eng String
+
+  mediaImport   MediaImport? @relation(fields: [mediaImportId], references: [id])
+  mediaImportId Int?
+}
+
+model MediaImport {
+  id      Int     @id @default(autoincrement())
+  name    String
+  files   File[]
+  entries Entry[]
+  isDone  Boolean
 }
