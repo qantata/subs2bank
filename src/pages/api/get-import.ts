@@ -1,10 +1,12 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
 import { prisma } from "@root/lib/prisma";
+import { Entry, MediaImport } from "@prisma/client";
 
 export type Response = {
   error?: string;
-  id?: number;
+  import?: MediaImport;
+  entries?: Entry[];
 };
 
 export default async function handler(
@@ -20,19 +22,32 @@ export default async function handler(
   }
 
   try {
-    const entry = await prisma.mediaImport.findUnique({
+    const mediaImport = await prisma.mediaImport.findUnique({
       where: {
         id: req.body.id,
       },
     });
 
-    if (!entry) {
+    if (!mediaImport) {
       res.status(404).send({});
       return;
     }
 
+    const entries = await prisma.entry.findMany({
+      where: {
+        mediaImportId: mediaImport.id,
+      },
+    });
+
+    if (!entries) {
+      res.status(500).send({
+        error: "couldnt load entires for media import",
+      });
+    }
+
     res.status(200).send({
-      id: req.body.id,
+      import: mediaImport,
+      entries,
     });
   } catch (err) {
     console.error(err);
