@@ -371,6 +371,19 @@ export default async function handler(
       }
     }
 
+    try {
+      await prisma.mediaImport.update({
+        where: {
+          id: importEntry.id,
+        },
+        data: {
+          isDone: true,
+        },
+      });
+    } catch (err) {
+      console.error(err);
+    }
+
     io.emit("done", {});
     console.log("Done");
     httpServer.close();
