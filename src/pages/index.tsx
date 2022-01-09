@@ -15,6 +15,9 @@ const SearchContainer = styled("div", {
   height: "50px",
   margin: "0 auto",
   marginBottom: "32px",
+  display: "flex",
+  gap: "32px",
+  alignItems: "center",
 });
 
 const TableContainer = styled("div", {
@@ -152,6 +155,7 @@ const Home: NextPage = () => {
           value={searchValue}
           onChange={setSearchValue}
         />
+        {activeEntries.length} sentences
       </SearchContainer>
 
       <audio ref={audioRef}></audio>
