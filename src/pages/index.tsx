@@ -75,8 +75,14 @@ const RowData = styled("div", {
 
   "> button": {
     width: "auto",
-    marginBottom: 4,
   },
+});
+
+const RowButtons = styled("div", {
+  display: "flex",
+  alignItems: "flex-end",
+  gap: "16px",
+  marginBottom: 4,
 });
 
 const Home: NextPage = () => {
@@ -176,9 +182,19 @@ const Home: NextPage = () => {
                     <h3>{e.jap}</h3>
                     <p>{e.eng}</p>
                   </div>
-                  <Button onPress={() => onPlayAudioClick(e.id)}>
-                    Play audio
-                  </Button>
+
+                  <RowButtons>
+                    <Button onPress={() => onPlayAudioClick(e.id)}>
+                      Play audio
+                    </Button>
+
+                    <a
+                      href={`http://localhost:3000/api/audio?id=${e.id}`}
+                      target="_blank"
+                    >
+                      <Button>Download MP3</Button>
+                    </a>
+                  </RowButtons>
                 </RowData>
               </Row>
             ))}
