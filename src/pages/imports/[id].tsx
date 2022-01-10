@@ -92,7 +92,7 @@ const Import = () => {
       return;
     }
 
-    if (json.import && json.entries) {
+    if (json.import && json.entries && json.import.isDone) {
       setMediaImport(json.import as MediaImport);
       setEntries(json.entries as Entry[]);
       setIsLoading(false);
