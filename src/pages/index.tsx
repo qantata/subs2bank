@@ -2,6 +2,9 @@ import { Entry } from "@prisma/client";
 import { styled } from "@root/stitches.config";
 import type { NextPage } from "next";
 import { useEffect, useRef, useState } from "react";
+import { FixedSizeList } from "react-window";
+import AutoSizer from "react-virtualized-auto-sizer";
+
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
 
@@ -23,7 +26,7 @@ const SearchContainer = styled("div", {
 const TableContainer = styled("div", {
   width: "100%",
   height: "calc(100vh - 200px - 32px - 50px)",
-  overflowY: "auto",
+  overflowY: "hidden",
 });
 
 const LoadingText = styled("h3", {
@@ -34,22 +37,31 @@ const LoadingText = styled("h3", {
 
 const Table = styled("div", {
   margin: "0 auto",
-  width: "800px",
-  height: "600px",
+  width: "100%",
+  height: "100%",
 });
 
 const Row = styled("div", {
   width: "100%",
-  padding: "8px 0",
+  height: "166px",
+
+  "&:first-child": {
+    "> div": {
+      borderTop: "1px solid $grayBorder",
+    },
+  },
+});
+
+const RowInner = styled("div", {
+  width: "800px",
+  height: "100%",
+  margin: "0 auto",
   display: "flex",
   alignItems: "stretch",
   gap: "32px",
+  padding: "8px 0",
 
   borderBottom: "1px solid $grayBorder",
-
-  "&:first-child": {
-    borderTop: "1px solid $grayBorder",
-  },
 });
 
 const RowImage = styled("div", {
@@ -171,33 +183,55 @@ const Home: NextPage = () => {
       {!isLoading && (
         <TableContainer>
           <Table>
-            {activeEntries.map((e) => (
-              <Row key={e.id}>
-                <RowImage>
-                  <img src={`http://localhost:3000/api/image?id=${e.id}`} />
-                </RowImage>
+            <AutoSizer>
+              {({ width, height }) => (
+                <>
+                  <FixedSizeList
+                    width={width}
+                    height={height}
+                    itemCount={activeEntries.length}
+                    itemSize={166}
+                    itemData={activeEntries}
+                  >
+                    {({ data, index, style }) => {
+                      const e = data[index];
 
-                <RowData>
-                  <div>
-                    <h3>{e.jap}</h3>
-                    <p>{e.eng}</p>
-                  </div>
+                      return (
+                        <Row style={style} key={e.id}>
+                          <RowInner>
+                            <RowImage>
+                              <img
+                                src={`http://localhost:3000/api/image?id=${e.id}`}
+                              />
+                            </RowImage>
 
-                  <RowButtons>
-                    <Button onPress={() => onPlayAudioClick(e.id)}>
-                      Play audio
-                    </Button>
+                            <RowData>
+                              <div>
+                                <h3>{e.jap}</h3>
+                                <p>{e.eng}</p>
+                              </div>
 
-                    <a
-                      href={`http://localhost:3000/api/audio?id=${e.id}`}
-                      target="_blank"
-                    >
-                      <Button>Download MP3</Button>
-                    </a>
-                  </RowButtons>
-                </RowData>
-              </Row>
-            ))}
+                              <RowButtons>
+                                <Button onPress={() => onPlayAudioClick(e.id)}>
+                                  Play audio
+                                </Button>
+
+                                <a
+                                  href={`http://localhost:3000/api/audio?id=${e.id}`}
+                                  target="_blank"
+                                >
+                                  <Button>Download MP3</Button>
+                                </a>
+                              </RowButtons>
+                            </RowData>
+                          </RowInner>
+                        </Row>
+                      );
+                    }}
+                  </FixedSizeList>
+                </>
+              )}
+            </AutoSizer>
           </Table>
         </TableContainer>
       )}
